@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Relatórios</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input, textarea {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #relatorio {
+      display: none;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: white;
+      color: #000;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .label {
+      font-weight: bold;
+    }
+
+    /* Tela de login */
+    #login {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #login input {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #login button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Botões de Relatório */
+    #opcoes-relatorio {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #opcoes-relatorio button {
+      margin: 10px;
+    }
+
+    /* Ajustes no layout do PDF */
+    .header-logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header-logo img {
+      width: 200px;
+      height: auto;
+    }
+
+    .header-title {
+      text-align: center;
+      font-size: 22px;
+      color: #007BFF;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .section-content {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Tela de Login -->
+  <div id="login">
+    <h2>Login</h2>
+    <input type="text" id="usuario" placeholder="Usuário" required />
+    <input type="password" id="senha" placeholder="Senha" required />
+    <button onclick="fazerLogin()">Entrar</button>
+  </div>
+
+  <!-- Opções de Relatório -->
+  <div id="opcoes-relatorio" style="display:none;">
+    <h2>Escolha o tipo de Relatório</h2>
+    <button onclick="exibirFormulario('entrada')">Relatório de Entrada</button>
+    <button onclick="exibirFormulario('saida')">Relatório de Saída</button>
+  </div>
+
+  <!-- Formulário de Relatório -->
+  <div id="formulario-relatorio" style="display:none;">
+    <h1 id="titulo-relatorio">Gerador de Relatório</h1>
+
+    <form id="formulario">
+      <input type="text" id="nome" placeholder="Nome do Responsável" required />
+      <input type="date" id="data" required />
+      <input type="time" id="hora" required />
+      <input type="number" id="valor" placeholder="Valor de Entrada" required />
+      <input type="text" id="evento" placeholder="Evento Gerador" required />
+      <textarea id="descricao" rows="6" placeholder="Descrição do Relatório" required></textarea>
+      <button type="submit">Gerar Relatório</button>
+    </form>
+
+    <div id="relatorio">
+      <h2>Relatório Gerado</h2>
+      <p><span class="label">Responsável:</span> <span id="rNome"></span></p>
+      <p><span class="label">Data:</span> <span id="rData"></span></p>
+      <p><span class="label">Hora:</span> <span id="rHora"></span></p>
+      <p><span class="label">Valor de Entrada:</span> <span id="rValor"></span></p>
+      <p><span class="label">Evento Gerador:</span> <span id="rEvento"></span></p>
+      <p><span class="label">Descrição:</span></p>
+      <p id="rDescricao"></p>
+      <br>
+      <button onclick="gerarPDF()">📄 Baixar PDF</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('formulario');
+    const relatorio = document.getElementById('relatorio');
+    const loginDiv = document.getElementById('login');
+    const opcoesRelatorioDiv = document.getElementById('opcoes-relatorio');
+    const formularioRelatorioDiv = document.getElementById('formulario-relatorio');
+    const tituloRelatorio = document.getElementById('titulo-relatorio');
+
+    function fazerLogin() {
+      const usuario = document.getElementById('usuario').value;
+      const senha = document.getElementById('senha').value;
+
+      if (usuario === 'gremio' && senha === 'gremio') {
+        // Exibe as opções de relatório e esconde a tela de login
+        loginDiv.style.display = 'none';
+        opcoesRelatorioDiv.style.display = 'block';
+      } else {
+        alert('Credenciais incorretas!');
+      }
+    }
+
+    function exibirFormulario(tipoRelatorio) {
+      // Exibe o formulário de relatório
+      opcoesRelatorioDiv.style.display = 'none';
+      formularioRelatorioDiv.style.display = 'block';
+
+      // Altera o título conforme o tipo de relatório
+      if (tipoRelatorio === 'entrada') {
+        tituloRelatorio.textContent = 'Gerador de Relatório de Entrada';
+      } else if (tipoRelatorio === 'saida') {
+        tituloRelatorio.textContent = 'Gerador de Relatório de Saída';
+        // Alterando os placeholders para o relatório de saída
+        document.getElementById('valor').placeholder = "Valor de Saída";
+        document.getElementById('evento').placeholder = "Causa da Saída";
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nome = document.getElementById('nome').value;
+      const data = document.getElementById('data').value;
+      const hora = document.getElementById('hora').value;
+      const valor = document.getElementById('valor').value;
+      const evento = document.getElementById('evento').value;
+      const descricao = document.getElementById('descricao').value;
+
+      document.getElementById('rNome').textContent = nome;
+      document.getElementById('rData').textContent = data;
+      document.getElementById('rHora').textContent = hora;
+      document.getElementById('rValor').textContent = valor;
+      document.getElementById('rEvento').textContent = evento;
+      document.getElementById('rDescricao').textContent = descricao;
+
+      relatorio.style.display = 'block';
+    });
+
+    function gerarPDF() {
+      const nomeResponsavel = document.getElementById('rNome').textContent;
+      const data = document.getElementById('rData').textContent;
+      const hora = document.getElementById('rHora').textContent;
+      const valor = document.getElementById('rValor').textContent;
+      const evento = document.getElementById('rEvento').textContent;
+      const descricao = document.getElementById('rDescricao').textContent;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Cabeçalho com a logo
+      doc.addImage('https://instagram.ffor42-1.fna.fbcdn.net/v/t51.2885-15/488870361_17842005768469437_5722588206738101868_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2xlX3RhZyI6IkZFRUQuaW1hZ2VfdXJsZ2VuLjUwMHg1MDAuc2RyLmY3NTc2MS5kZWZhdWx0X2ltYWdlIn0&_nc_ht=instagram.ffor42-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QErG9040bBHI19Ay6tldnAMZoRRTTLg6DZFemnMlfW3nR0uFiU46C71i7GQ6SINaxt4BsfMqmIXbd9V4tZy_32B&_nc_ohc=zFLSik1ZZMsQ7kNvwH4QAcJ&_nc_gid=5igbjVeWCqXm52D2es-a1A&edm=AP4sbd4BAAAA&ccb=7-5&ig_cache_key=MzYwNzk3MDA5MDg0ODc5NzE4Nw%3D%3D.3-ccb7-5&oh=00_AfGbnZrxbFisqSIkjb20jbISD_QdWE_XB03zKfGiLhfWRQ&oe=68021CD3&_nc_sid=7a9f4b', 'JPEG', 15, 10, 50, 50);
+
+      // Título
+      doc.setFontSize(18);
+      doc.setTextColor(0, 102, 204);
+      doc.text('Relatórios de Tesouraria Grêmio Estudantil', 105, 20, null, null, 'center');
+
+      // Linha de separação
+      doc.setDrawColor(0, 102, 204);
+      doc.line(10, 30, 200, 30);
+
+      // Adicionar conteúdo do relatório
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Responsável: ${nomeResponsavel}`, 10, 40);
+      doc.text(`Data: ${data}`, 10, 50);
+      doc.text(`Hora: ${hora}`, 10, 60);
+      doc.text(`Valor: ${valor}`, 10, 70);
+      doc.text(`Evento: ${evento}`, 10, 80);
+      doc.text(`Descrição: ${descricao}`, 10, 90);
+
+      // Assinaturas
+      doc.text('Assinatura do Presidente do Grêmio: Bergson Domingos de Freitas', 10, doc.internal.pageSize.height - 40);
+      doc.text(`Assinatura do Tesoureiro responsável: ${nomeResponsavel}`, 10, doc.internal.pageSize.height - 30);
+
+      // Adicionando um rodapé
+      doc.setFontSize(10);
+      doc.text('Documento gerado pelo sistema de Relatórios de Tesouraria.', 10, doc.internal.pageSize.height - 10);
+
+      // Salvar PDF
+      doc.save('relatorio.pdf');
+    }
+  </script>
+
+</body>
+</html>
